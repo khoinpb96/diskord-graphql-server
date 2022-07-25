@@ -1,41 +1,29 @@
-import { UserModel } from "../models";
+import { UserMutationArgs } from "./../types/index";
 import { UserInputError } from "apollo-server-express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { RegisterMutationArgs, ResolverContext, UserQueryArgs } from "../types";
 
-export const resolvers = {
+import { AuthMutationArgs, ResolverContext } from "../types";
+import { UserModel } from "../models";
+import env from "../utils/environments";
+
+const resolvers = {
   Query: {
-    users: async () => {
-      const users = await UserModel.find();
-      return users;
-    },
-    user: async (
-      _: any,
-      { userId, token }: UserQueryArgs,
-      context: ResolverContext
-    ) => {
-      if (
-        !userId ||
-        !token ||
-        userId.trim().length === 0 ||
-        token.trim().length === 0
-      ) {
-        throw new UserInputError("Invalid argument value");
+    users: async () => await UserModel.find(),
+    user: async (_: any, __: any, context: ResolverContext) => {
+      const { id, message } = context;
+      if (!id) {
+        throw new UserInputError(message);
       }
 
-      const parsedToken = await jwt.verify(token, "Minerva");
-      if (!parsedToken) {
-        throw new UserInputError("Cannot verify token");
-      }
-
-      const user = await UserModel.findById(userId);
+      const user = await UserModel.findById(id);
       if (!user) {
-        throw new Error(`UserId: ${userId} not found`);
+        throw new Error(`UserId: ${context.id} not found`);
       }
 
       return user;
     },
+
     deleteAllUsers: async () => {
       await UserModel.deleteMany();
       return "Delete all users successfully";
@@ -43,49 +31,50 @@ export const resolvers = {
   },
 
   Mutation: {
-    register: async (_: any, { user }: RegisterMutationArgs) => {
-      const { email, password } = user;
+    register: async (_: any, { user }: AuthMutationArgs) => {
+      const { username, password } = user;
+
       if (
-        !email ||
+        !username ||
         !password ||
-        email.toLowerCase().trim().length < 6 ||
+        username.toLowerCase().trim().length < 6 ||
         password.trim().length < 6
       ) {
         throw new UserInputError("Invalid argument value");
       }
 
-      const existedUser = await UserModel.findOne({ email });
+      const existedUser = await UserModel.findOne({ username });
       if (existedUser) {
         throw new UserInputError("User existed");
       }
 
-      const encryptedPassword = await bcrypt.hash(password, 10);
-
       const newUser = await UserModel.create({
         ...user,
-        password: encryptedPassword,
+        password: await bcrypt.hash(password, 10),
       });
-
       if (!newUser) {
         throw new Error("Something went wrong, please try again");
       }
 
-      const accessToken = jwt.sign({ id: newUser.id }, "Minerva");
+      const accessToken = jwt.sign({ id: newUser.id }, env.JWT_SECRET!, {
+        expiresIn: "1h",
+      });
+
       return { accessToken };
     },
 
-    login: async (_: any, { user }: RegisterMutationArgs) => {
-      const { email, password } = user;
+    login: async (_: any, { user }: AuthMutationArgs) => {
+      const { username, password } = user;
       if (
-        !email ||
+        !username ||
         !password ||
-        email.toLowerCase().trim().length < 6 ||
+        username.toLowerCase().trim().length < 6 ||
         password.trim().length < 6
       ) {
         throw new UserInputError("Invalid argument value");
       }
 
-      const existedUser = await UserModel.findOne({ email });
+      const existedUser = await UserModel.findOne({ username });
       if (!existedUser) {
         throw new UserInputError("Wrong username");
       }
@@ -95,10 +84,54 @@ export const resolvers = {
         throw new UserInputError("Wrong password");
       }
 
-      const accessToken = jwt.sign({ id: existedUser.id }, "Minerva");
+      const accessToken = jwt.sign({ id: existedUser.id }, env.JWT_SECRET!, {
+        expiresIn: "1h",
+      });
       return { accessToken };
     },
-  },
 
-  // editUser: async (_: any, __: any, context: ResolverContext) => {},
+    editUser: async (
+      _: any,
+      { user }: UserMutationArgs,
+      context: ResolverContext
+    ) => {
+      const { phoneNumber, email } = user;
+      if (
+        !phoneNumber ||
+        !email ||
+        phoneNumber.trim().length < 6 ||
+        email.trim().length < 6
+      ) {
+        throw new UserInputError("Invalid argument value");
+      }
+
+      const { id, message } = context;
+      if (!id) {
+        throw new UserInputError(message);
+      }
+
+      const updatedUser = await UserModel.findByIdAndUpdate(id, { ...user });
+      if (!updatedUser) {
+        throw new UserInputError("User not found");
+      }
+
+      return true;
+    },
+
+    deleteUser: async (_: any, __: any, context: ResolverContext) => {
+      const { id, message } = context;
+      if (!id) {
+        throw new UserInputError(message);
+      }
+
+      const deletedUser = await UserModel.findByIdAndDelete(id);
+      if (!deletedUser) {
+        throw new UserInputError("User not found");
+      }
+
+      return true;
+    },
+  },
 };
+
+export default resolvers;

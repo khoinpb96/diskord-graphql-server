@@ -1,28 +1,39 @@
 import { gql } from "apollo-server-core";
 
-export const typeDefs = gql`
+const typeDefs = gql`
   type Query {
     users: [User]
-    user(userId: String, token: String): User
+    user: User
     deleteAllUsers: String
   }
 
   type User {
+    username: String
+    phoneNumber: String
     email: String
-    password: String
   }
 
   type Mutation {
-    register(user: UserInput): UserMutationRespone
-    login(user: UserInput): UserMutationRespone
+    register(user: AuthInput): AuthResponse
+    login(user: AuthInput): AuthResponse
+
+    editUser(user: EditUserInput): Boolean
+    deleteUser: Boolean
   }
 
-  type UserMutationRespone {
+  type AuthResponse {
     accessToken: String
   }
 
-  input UserInput {
-    email: String
+  input AuthInput {
+    username: String
     password: String
   }
+
+  input EditUserInput {
+    phoneNumber: String
+    email: String
+  }
 `;
+
+export default typeDefs;
