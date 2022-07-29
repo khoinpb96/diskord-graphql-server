@@ -118,16 +118,23 @@ const resolvers = {
       return true;
     },
 
-    deleteUser: async (_: any, __: any, context: ResolverContext) => {
+    deleteUser: async (
+      _: any,
+      { password }: { password: string },
+      context: ResolverContext
+    ) => {
       const { id, message } = context;
       if (!id) {
         throw new UserInputError(message);
       }
 
-      const deletedUser = await UserModel.findByIdAndDelete(id);
-      if (!deletedUser) {
-        throw new UserInputError("User not found");
+      const existedUser = await UserModel.findById(id);
+      const validedUser = await bcrypt.compare(password, existedUser.password);
+      if (!validedUser) {
+        throw new UserInputError("Wrong password");
       }
+
+      await existedUser.remove();
 
       return true;
     },

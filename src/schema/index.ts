@@ -18,7 +18,7 @@ const typeDefs = gql`
     login(user: AuthInput): AuthResponse
 
     editUser(user: EditUserInput): Boolean
-    deleteUser: Boolean
+    deleteUser(password: String): Boolean
   }
 
   type AuthResponse {
