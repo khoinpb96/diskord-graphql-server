@@ -32,8 +32,8 @@ const typeDefs = gql`
     editUser(user: EditUserInput): Boolean
     deleteUser(password: String): Boolean
 
-    addFriend(friendId: String): Boolean
-    deleteFriend(friendId: String): Boolean
+    addFriend(username: String): Boolean
+    deleteFriend(username: String): Boolean
   }
 
   type AuthResponse {

@@ -4,7 +4,7 @@ import { ResolverContext } from "../types";
 
 export default async (
   _: any,
-  { friendId }: { friendId: string },
+  { username }: { username: string },
   context: ResolverContext
 ) => {
   const { id, message } = context;
@@ -17,13 +17,13 @@ export default async (
     throw new UserInputError("User not found");
   }
 
-  const friend = await UserModel.findById(friendId);
+  const friend = await UserModel.findOne({ username });
   if (!friend) {
     throw new UserInputError("Friend not found");
   }
 
   const alreadyHasThisFriend = user.friends.some(
-    (friend: { id: string }) => friendId === friend.id
+    (friend: { username: string }) => username === friend.username
   );
 
   if (!alreadyHasThisFriend) {
@@ -31,10 +31,11 @@ export default async (
   }
 
   user.friends = user.friends.filter(
-    (friend: { id: string }) => friendId !== friend.id
+    (friend: { username: string }) => username !== friend.username
   );
+
   friend.friends = friend.friends.filter(
-    (friend: { id: string }) => user.id !== friend.id
+    (friend: { username: string }) => user.username !== friend.username
   );
 
   await user.save();
