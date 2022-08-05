@@ -23,14 +23,16 @@ export default async (
   }
 
   const alreadyHasThisFriend = user.friends.some(
-    (friend: string) => friendId === friend
+    (friend: { id: string }) => friendId === friend.id
   );
   if (alreadyHasThisFriend) {
     throw new UserInputError("Already has this friend");
   }
 
-  user.friends.push(friendId);
+  user.friends.push({ id: friend.id, username: friend.username });
+  friend.friends.push({ id: user.id, username: user.username });
   await user.save();
+  await friend.save();
 
   return true;
 };
