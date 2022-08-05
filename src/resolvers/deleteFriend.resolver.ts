@@ -17,15 +17,28 @@ export default async (
     throw new UserInputError("User not found");
   }
 
+  const friend = await UserModel.findById(friendId);
+  if (!friend) {
+    throw new UserInputError("Friend not found");
+  }
+
   const alreadyHasThisFriend = user.friends.some(
-    (friend: string) => friendId === friend
+    (friend: { id: string }) => friendId === friend.id
   );
+
   if (!alreadyHasThisFriend) {
     throw new UserInputError("You don't have this friend");
   }
 
-  user.friends = user.friends.filter((friend: string) => friendId !== friend);
+  user.friends = user.friends.filter(
+    (friend: { id: string }) => friendId !== friend.id
+  );
+  friend.friends = friend.friends.filter(
+    (friend: { id: string }) => user.id !== friend.id
+  );
+
   await user.save();
+  await friend.save();
 
   return true;
 };

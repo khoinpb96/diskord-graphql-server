@@ -17,7 +17,12 @@ const typeDefs = gql`
     username: String
     phoneNumber: String
     email: String
-    friends: [String]
+    friends: [Friend]
+  }
+
+  type Friend {
+    id: ID
+    username: String
   }
 
   type Mutation {
