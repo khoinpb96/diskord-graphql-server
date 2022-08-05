@@ -22,6 +22,10 @@ export default async (
     throw new UserInputError("Friend not found");
   }
 
+  if (user.id === friend.id) {
+    throw new UserInputError("You cannot be friend with yourself");
+  }
+
   const alreadyHasThisFriend = user.friends.some(
     (friend: { username: string }) => username === friend.username
   );
