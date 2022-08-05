@@ -2,15 +2,22 @@ import { gql } from "apollo-server-core";
 
 const typeDefs = gql`
   type Query {
+    "For testing purposes only"
     users: [User]
-    user: User
+
+    "For testing purposes only"
     deleteAllUsers: String
+
+    "Get user information using accessToken attached in the headers"
+    user: User
   }
 
   type User {
+    id: ID
     username: String
     phoneNumber: String
     email: String
+    friends: [String]
   }
 
   type Mutation {
@@ -19,6 +26,9 @@ const typeDefs = gql`
 
     editUser(user: EditUserInput): Boolean
     deleteUser(password: String): Boolean
+
+    addFriend(friendId: String): Boolean
+    deleteFriend(friendId: String): Boolean
   }
 
   type AuthResponse {

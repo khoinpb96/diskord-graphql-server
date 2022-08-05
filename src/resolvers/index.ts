@@ -1,11 +1,16 @@
-import { UserMutationArgs } from "./../types/index";
 import { UserInputError } from "apollo-server-express";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-import { AuthMutationArgs, ResolverContext } from "../types";
+import { UserMutationArgs } from "./../types/index";
 import { UserModel } from "../models";
-import env from "../utils/environments";
+import { ResolverContext } from "../types";
+
+import addFriend from "./addFriend.resolver";
+import deleteFriend from "./deleteFriend.resolver";
+import login from "./login.resolver";
+import register from "./register.resolver";
+import editUser from "./editUser.resolver";
+import deleteUser from "./deleteUser.resolver";
 
 const resolvers = {
   Query: {
@@ -31,113 +36,12 @@ const resolvers = {
   },
 
   Mutation: {
-    register: async (_: any, { user }: AuthMutationArgs) => {
-      const { username, password } = user;
-
-      if (
-        !username ||
-        !password ||
-        username.toLowerCase().trim().length < 6 ||
-        password.trim().length < 6
-      ) {
-        throw new UserInputError("Invalid argument value");
-      }
-
-      const existedUser = await UserModel.findOne({ username });
-      if (existedUser) {
-        throw new UserInputError("User existed");
-      }
-
-      const newUser = await UserModel.create({
-        ...user,
-        password: await bcrypt.hash(password, 10),
-      });
-      if (!newUser) {
-        throw new Error("Something went wrong, please try again");
-      }
-
-      const accessToken = jwt.sign({ id: newUser.id }, env.JWT_SECRET!, {
-        expiresIn: "1h",
-      });
-
-      return { accessToken };
-    },
-
-    login: async (_: any, { user }: AuthMutationArgs) => {
-      const { username, password } = user;
-      if (
-        !username ||
-        !password ||
-        username.toLowerCase().trim().length < 6 ||
-        password.trim().length < 6
-      ) {
-        throw new UserInputError("Invalid argument value");
-      }
-
-      const existedUser = await UserModel.findOne({ username });
-      if (!existedUser) {
-        throw new UserInputError("Wrong username");
-      }
-
-      const validedUser = await bcrypt.compare(password, existedUser.password);
-      if (!validedUser) {
-        throw new UserInputError("Wrong password");
-      }
-
-      const accessToken = jwt.sign({ id: existedUser.id }, env.JWT_SECRET!, {
-        expiresIn: "1h",
-      });
-      return { accessToken };
-    },
-
-    editUser: async (
-      _: any,
-      { user }: UserMutationArgs,
-      context: ResolverContext
-    ) => {
-      const { phoneNumber, email } = user;
-      if (
-        !phoneNumber ||
-        !email ||
-        phoneNumber.trim().length < 6 ||
-        email.trim().length < 6
-      ) {
-        throw new UserInputError("Invalid argument value");
-      }
-
-      const { id, message } = context;
-      if (!id) {
-        throw new UserInputError(message);
-      }
-
-      const updatedUser = await UserModel.findByIdAndUpdate(id, { ...user });
-      if (!updatedUser) {
-        throw new UserInputError("User not found");
-      }
-
-      return true;
-    },
-
-    deleteUser: async (
-      _: any,
-      { password }: { password: string },
-      context: ResolverContext
-    ) => {
-      const { id, message } = context;
-      if (!id) {
-        throw new UserInputError(message);
-      }
-
-      const existedUser = await UserModel.findById(id);
-      const validedUser = await bcrypt.compare(password, existedUser.password);
-      if (!validedUser) {
-        throw new UserInputError("Wrong password");
-      }
-
-      await existedUser.remove();
-
-      return true;
-    },
+    register: register,
+    login: login,
+    editUser: editUser,
+    deleteUser: deleteUser,
+    addFriend: addFriend,
+    deleteFriend: deleteFriend,
   },
 };
 
