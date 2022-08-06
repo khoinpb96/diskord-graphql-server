@@ -33,8 +33,8 @@ export default async (
     throw new UserInputError("Already has this friend");
   }
 
-  user.friends.push({ id: friend.id, username: friend.username });
-  friend.friends.push({ id: user.id, username: user.username });
+  user.friends.push(friend.id);
+  friend.friends.push(user.id);
   await user.save();
   await friend.save();
 

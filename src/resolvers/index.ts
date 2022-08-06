@@ -43,6 +43,15 @@ const resolvers = {
     addFriend: addFriend,
     deleteFriend: deleteFriend,
   },
+
+  User: {
+    friends: async ({ friends }: any) => {
+      return friends.map(async (friendId: string) => {
+        const friend = await UserModel.findById(friendId);
+        return { id: friend.id, username: friend.username };
+      });
+    },
+  },
 };
 
 export default resolvers;
