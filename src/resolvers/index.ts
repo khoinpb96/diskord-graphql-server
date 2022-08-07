@@ -1,16 +1,17 @@
 import { UserInputError } from "apollo-server-express";
-import bcrypt from "bcryptjs";
+import { PubSub } from "graphql-subscriptions";
 
-import { UserMutationArgs } from "./../types/index";
 import { UserModel } from "../models";
 import { ResolverContext } from "../types";
 
 import addFriend from "./addFriend.resolver";
 import deleteFriend from "./deleteFriend.resolver";
+import deleteUser from "./deleteUser.resolver";
+import editUser from "./editUser.resolver";
 import login from "./login.resolver";
 import register from "./register.resolver";
-import editUser from "./editUser.resolver";
-import deleteUser from "./deleteUser.resolver";
+
+const pubsub = new PubSub();
 
 const resolvers = {
   Query: {
@@ -42,6 +43,13 @@ const resolvers = {
     deleteUser: deleteUser,
     addFriend: addFriend,
     deleteFriend: deleteFriend,
+
+    createMessage: (_: any, { message }: { message: any }) => {
+      pubsub.publish("MESSAGE_CREATED", {
+        messageCreated: message,
+      });
+      return true;
+    },
   },
 
   User: {
@@ -52,6 +60,14 @@ const resolvers = {
       });
     },
   },
+
+  Subscription: {
+    messageCreated: {
+      subscribe: () => pubsub.asyncIterator(["MESSAGE_CREATED"]),
+    },
+  },
 };
 
 export default resolvers;
+
+//#publishing-an-event

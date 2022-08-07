@@ -12,6 +12,23 @@ const typeDefs = gql`
     user: User
   }
 
+  type Mutation {
+    register(user: AuthInput): AuthResponse
+    login(user: AuthInput): AuthResponse
+
+    editUser(user: EditUserInput): Boolean
+    deleteUser(password: String): Boolean
+
+    addFriend(username: String): Boolean
+    deleteFriend(username: String): Boolean
+
+    createMessage(message: String): Boolean
+  }
+
+  type Subscription {
+    messageCreated: String
+  }
+
   type User {
     id: ID
     username: String
@@ -23,17 +40,6 @@ const typeDefs = gql`
   type Friend {
     id: ID
     username: String
-  }
-
-  type Mutation {
-    register(user: AuthInput): AuthResponse
-    login(user: AuthInput): AuthResponse
-
-    editUser(user: EditUserInput): Boolean
-    deleteUser(password: String): Boolean
-
-    addFriend(username: String): Boolean
-    deleteFriend(username: String): Boolean
   }
 
   type AuthResponse {
