@@ -2,9 +2,9 @@ import { ApolloServer } from "apollo-server-express";
 import mongoose from "mongoose";
 
 import express from "express";
-import typeDefs from "./schema";
+import { typeDefs } from "./schema";
 import resolvers from "./resolvers";
-import context from "./context";
+import { context } from "./context";
 import { env } from "./utils";
 
 const app = express();
@@ -29,9 +29,14 @@ const startApolloServerAndMongoose = async () => {
         `🚀 Server ready at http://localhost:${PORT}${env.SERVER_PATH}`
       );
     });
+
+    return true;
   } catch (error) {
     console.log(error);
+    return false;
   }
 };
 
 startApolloServerAndMongoose();
+
+export default startApolloServerAndMongoose;
