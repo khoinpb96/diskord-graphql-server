@@ -10,26 +10,14 @@ import deleteUser from "./deleteUser.resolver";
 import editUser from "./editUser.resolver";
 import login from "./login.resolver";
 import register from "./register.resolver";
-
-const pubsub = new PubSub();
+import editUser from "./editUser.resolver";
+import deleteUser from "./deleteUser.resolver";
 
 const resolvers = {
   Query: {
+    user: user,
+    //FOR TESTING ONLY
     users: async () => await UserModel.find(),
-    user: async (_: any, __: any, context: ResolverContext) => {
-      const { id, message } = context;
-      if (!id) {
-        throw new UserInputError(message);
-      }
-
-      const user = await UserModel.findById(id);
-      if (!user) {
-        throw new Error(`UserId: ${context.id} not found`);
-      }
-
-      return user;
-    },
-
     deleteAllUsers: async () => {
       await UserModel.deleteMany();
       return "Delete all users successfully";
