@@ -39,8 +39,9 @@ const resolvers = {
 
     //FOR TESTING ONLY
     users: async () => await UserModel.find(),
-    deleteAllUsers: async () => {
+    deleteAll: async () => {
       await UserModel.deleteMany();
+      await ChannelModel.deleteMany();
       return true;
     },
     channels: async () => await ChannelModel.find(),
