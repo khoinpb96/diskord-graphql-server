@@ -14,6 +14,10 @@ export default async (
   }
 
   const existedUser = await UserModel.findById(id);
+  if (!existedUser || !existedUser.password) {
+    throw new UserInputError("User not found");
+  }
+
   const validedUser = await bcrypt.compare(password, existedUser.password);
   if (!validedUser) {
     throw new UserInputError("Wrong password");

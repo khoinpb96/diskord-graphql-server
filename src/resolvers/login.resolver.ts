@@ -18,7 +18,7 @@ export default async (_: any, { user }: AuthMutationArgs) => {
   }
 
   const existedUser = await UserModel.findOne({ username });
-  if (!existedUser) {
+  if (!existedUser || !existedUser.password) {
     throw new UserInputError("Wrong username");
   }
 

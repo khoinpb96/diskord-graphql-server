@@ -28,6 +28,10 @@ const resolvers = {
       }
 
       const channel = await ChannelModel.findById(channelId);
+      if (!channel) {
+        return null;
+      }
+
       return {
         id: channel.id,
         messages: channel.messages,
@@ -66,7 +70,7 @@ const resolvers = {
       }
 
       const user = await UserModel.findById(id);
-      if (!user) {
+      if (!user || !user.username) {
         throw new UserInputError("User not found");
       }
 
@@ -75,19 +79,21 @@ const resolvers = {
         throw new UserInputError("Channel not found");
       }
 
-      const sameUser = channel.messages[0]?.username === user.username;
-      const textIsRecentlySent =
-        Math.floor(Date.now() / 1000) - channel.messages[0]?.createAt < 60;
+      if (channel.messages[0]) {
+        const sameUser = channel.messages[0]?.username === user.username;
+        const textIsRecentlySent =
+          Math.floor(Date.now() / 1000) - channel?.messages[0]?.createAt < 60;
 
-      if (sameUser && textIsRecentlySent) {
-        channel.messages[0].text.push(message);
-        await channel.save();
+        if (sameUser && textIsRecentlySent) {
+          channel.messages[0].text.push(message);
+          await channel.save();
 
-        pubsub.publish("MESSAGE_CREATED", {
-          messageCreated: channel.messages[0],
-        });
+          pubsub.publish("MESSAGE_CREATED", {
+            messageCreated: channel.messages[0],
+          });
 
-        return true;
+          return true;
+        }
       }
 
       const creatingMessage = {
@@ -118,10 +124,13 @@ const resolvers = {
 
       const user = await UserModel.findById(id);
       const friend = await UserModel.findById(friendId);
+      if (!friend || !user || !user.channels) {
+        throw new UserInputError("Something went wrong");
+      }
 
       const currentChannels: any = await Promise.all(
         user.channels.map(
-          async (channelId: string) => await ChannelModel.findById(channelId)
+          async (channelId: any) => await ChannelModel.findById(channelId)
         )
       );
 
@@ -153,6 +162,8 @@ const resolvers = {
     friends: async ({ friends }: any) => {
       return friends.map(async (friendId: string) => {
         const friend = await UserModel.findById(friendId);
+        if (!friend) return [];
+
         return { id: friend.id, username: friend.username };
       });
     },
@@ -160,6 +171,8 @@ const resolvers = {
     channels: async ({ id, channels }: any) => {
       return channels.map(async (channelId: string) => {
         const channels = await ChannelModel.findById(channelId);
+        if (!channels) return [];
+
         return {
           id: channels.id,
           participants: channels.participants.filter(

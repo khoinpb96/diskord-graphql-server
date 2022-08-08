@@ -23,17 +23,17 @@ export default async (
   }
 
   const alreadyHasThisFriend = user.friends.some(
-    (friendId: string) => friendId.toString() === friend.id
+    (friendId: any) => friendId.toString() === friend.id
   );
   if (!alreadyHasThisFriend) {
     throw new UserInputError("You don't have this friend");
   }
 
   user.friends = user.friends.filter(
-    (friendId: string) => friendId.toString() !== friend.id
+    (friendId: any) => friendId.toString() !== friend.id
   );
   friend.friends = friend.friends.filter(
-    (friendId: string) => friendId.toString() !== user.id
+    (friendId: any) => friendId.toString() !== user.id
   );
   await user.save();
   await friend.save();
