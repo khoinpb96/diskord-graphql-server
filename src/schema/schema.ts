@@ -6,7 +6,7 @@ const typeDefs = gql`
     users: [User]
 
     "For testing purposes only"
-    deleteAllUsers: Boolean
+    deleteAll: Boolean
 
     "For testing purposes only"
     channels: [Channel]
