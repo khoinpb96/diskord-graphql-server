@@ -28,7 +28,7 @@ export default async (_: any, { user }: AuthMutationArgs) => {
   }
 
   const accessToken = jwt.sign({ id: existedUser.id }, env.JWT_SECRET!, {
-    expiresIn: "1h",
+    expiresIn: "4h",
   });
   return { accessToken };
 };
